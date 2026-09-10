@@ -261,9 +261,6 @@
     height:188.68%;
     object-fit:cover;
     display:block;
-    image-rendering:pixelated;
-    image-rendering:-moz-crisp-edges;
-    image-rendering:crisp-edges;
   }
   .cover-box .mystery{
     position:absolute;
@@ -288,35 +285,6 @@
     font-weight:700;
     box-shadow:0 3px 8px rgba(0,0,0,0.25);
   }
-  .symbol-btn{
-    position:absolute;
-    left:9%;
-    top:29%;
-    width:17%;
-    height:17%;
-    background:transparent;
-    border:none;
-    padding:0;
-    display:flex;
-    align-items:flex-end;
-    justify-content:flex-end;
-    cursor:pointer;
-    touch-action:manipulation;
-  }
-  .symbol-btn .speaker-icon{
-    background:#fff;
-    color:var(--blue-dark);
-    width:30px;
-    height:30px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:16px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
-    transition:transform .12s ease;
-  }
-  .symbol-btn:active .speaker-icon{ transform:scale(0.85); }
   .hint{
     font-size:13px;
     color:var(--muted);
@@ -415,8 +383,6 @@
     font-size:14px;
     font-weight:600;
     font-family:inherit;
-    cursor:pointer;
-    touch-action:manipulation;
   }
   .chip.none{
     background:transparent;
@@ -539,7 +505,6 @@
           <img class="mosaic-img" id="mosaicImg" src="" alt="">
           <div class="mystery"><span>❓</span></div>
         </div>
-        <button class="symbol-btn" id="symbolBtn" aria-label="播放發音"><span class="speaker-icon">🔊</span></button>
       </div>
 
       <div class="empty-state" id="emptyState">
@@ -548,7 +513,7 @@
         <button class="btn nav" id="goPracticeBtn">去練習找出不熟的卡片</button>
       </div>
 
-      <div class="hint" id="hintText">看注音符號念念看，點一下藍色方塊揭曉是誰！</div>
+      <div class="hint" id="hintText">看注音符號念念看，點一下模糊方塊揭曉是誰！</div>
 
       <div class="btn-row">
         <button class="btn know" id="knowBtn">😀 我會了</button>
@@ -617,25 +582,6 @@
   function saveReview(){ localStorage.setItem(REVIEW_KEY, JSON.stringify([...review])); }
   function saveStats(){ localStorage.setItem(STATS_KEY, JSON.stringify(stats)); }
   function todayKey(){ return new Date().toISOString().slice(0,10); }
-
-  // ---------- Pronunciation ----------
-  let ttsVoices = [];
-  function loadVoices(){ ttsVoices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
-  if("speechSynthesis" in window){
-    loadVoices();
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }
-  function speakSymbol(symbol){
-    if(!("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(symbol);
-    const voice = ttsVoices.find(v => v.lang === "zh-TW")
-      || ttsVoices.find(v => v.lang && v.lang.toLowerCase().startsWith("zh"));
-    if(voice) utter.voice = voice;
-    utter.lang = "zh-TW";
-    utter.rate = 0.75;
-    speechSynthesis.speak(utter);
-  }
 
   // ---------- Session tracking (for parent stats table) ----------
   let sessionActive = false;
@@ -718,7 +664,7 @@
       item.className = "grid-item" + (isKnown ? " known" : "") + (isReview ? " review" : "");
       item.innerHTML = `
         <img src="Card/${i}.png" alt="注音符號 ${symbols[i-1]}" loading="lazy">
-        <button class="grid-badge" type="button" aria-label="播放 ${symbols[i-1]} 發音">${symbols[i-1]} 🔊</button>
+        <div class="grid-badge">${symbols[i-1]}</div>
         ${isKnown ? '<div class="status-mark known">✔</div>' : ''}
         ${isReview ? '<div class="status-mark review">🔁</div>' : ''}
       `;
@@ -729,10 +675,6 @@
         pool = [...Array(TOTAL).keys()].map(k => k+1);
         currentIndex = i - 1;
         switchTab("practice");
-      });
-      item.querySelector(".grid-badge").addEventListener("click", (e) => {
-        e.stopPropagation();
-        speakSymbol(symbols[i-1]);
       });
       gridCards.appendChild(item);
     }
@@ -852,12 +794,6 @@
     if(sessionActive && session){ session.cardsShown++; }
   });
 
-  document.getElementById("symbolBtn").addEventListener("click", () => {
-    if(pool.length === 0) return;
-    const cardNum = pool[currentIndex];
-    speakSymbol(symbols[cardNum-1]);
-  });
-
   document.getElementById("prevBtn").addEventListener("click", () => {
     if(pool.length === 0) return;
     currentIndex = (currentIndex - 1 + pool.length) % pool.length;
@@ -940,11 +876,9 @@
       chipRow.innerHTML = '<span class="chip none">目前沒有待複習的卡片</span>';
     }else{
       [...review].sort((a,b)=>a-b).forEach(cardNum => {
-        const chip = document.createElement("button");
-        chip.type = "button";
+        const chip = document.createElement("span");
         chip.className = "chip";
         chip.textContent = symbols[cardNum-1];
-        chip.addEventListener("click", () => speakSymbol(symbols[cardNum-1]));
         chipRow.appendChild(chip);
       });
     }
