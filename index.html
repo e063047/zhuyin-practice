@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>注音符號練習</title>
+<style>
+  :root{
+    --bg:#fef6e9;
+    --card-bg:#ffffff;
+    --accent:#ff8fab;
+    --accent-dark:#e85d8c;
+    --blue:#7ec4e8;
+    --blue-dark:#4fa3d1;
+    --green:#8bd8a0;
+    --green-dark:#4caf6e;
+    --amber:#ffc973;
+    --amber-dark:#e8a23d;
+    --text:#3a2e2e;
+    --muted:#9a8c8c;
+    --shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{ touch-action:manipulation; }
+  body{
+    margin:0;
+    font-family:"PingFang TC","Microsoft JhengHei","Heiti TC",-apple-system,BlinkMacSystemFont,sans-serif;
+    background: var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  header{
+    text-align:center;
+    padding:22px 16px 10px;
+  }
+  header h1{
+    margin:0;
+    font-size:clamp(22px,5vw,32px);
+    letter-spacing:2px;
+  }
+  header p{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .tabs{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:16px 0 8px;
+    flex-wrap:wrap;
+    padding:0 10px;
+  }
+  .tab-btn{
+    border:none;
+    background:#fff;
+    color:var(--text);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    touch-action:manipulation;
+    transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .tab-btn.active{
+    background:var(--accent);
+    color:#fff;
+  }
+  .tab-btn:hover{ transform:translateY(-2px); }
+
+  main{
+    max-width:1000px;
+    margin:0 auto;
+    padding:10px 16px 60px;
+  }
+
+  /* ---------- Grid view ---------- */
+  #gridView{
+    display:none;
+  }
+  #gridView.active{ display:block; }
+  .grid-summary{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    flex-wrap:wrap;
+    margin:6px 4px 16px;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .grid-summary b{ color:var(--text); }
+  .grid-cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+    gap:12px;
+  }
+  .grid-item{
+    position:relative;
+    background:var(--card-bg);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    aspect-ratio:4/5;
+    border:3px solid transparent;
+    touch-action:manipulation;
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .grid-item:hover{ transform:translateY(-3px); }
+  .grid-item.known{ border-color:var(--green-dark); }
+  .grid-item.review{ border-color:var(--amber-dark); }
+  .grid-item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position: 20% 20%;
+    display:block;
+  }
+  .grid-badge{
+    position:absolute;
+    bottom:4px;
+    left:4px;
+    right:4px;
+    background:rgba(255,255,255,0.9);
+    border:none;
+    border-radius:8px;
+    text-align:center;
+    font-size:12px;
+    padding:3px 0;
+    font-weight:600;
+    color:var(--muted);
+    font-family:inherit;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  .status-mark{
+    position:absolute;
+    top:4px;
+    right:4px;
+    color:#fff;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2);
+  }
+  .status-mark.known{ background:var(--green-dark); }
+  .status-mark.review{ background:var(--amber-dark); }
+
+  /* ---------- Practice / Review view ---------- */
+  #practiceView{ display:none; }
+  #practiceView.active{ display:block; }
+  .practice-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  .mode-row{
+    display:flex;
+    gap:10px;
+  }
+  .mode-btn{
+    border:none;
+    background:#fff;
+    color:var(--muted);
+    padding:9px 18px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    touch-action:manipulation;
+  }
+  .mode-btn.active{
+    background:var(--blue-dark);
+    color:#fff;
+  }
+  .review-banner{
+    background:#fff4e0;
+    color:var(--amber-dark);
+    border-radius:12px;
+    padding:8px 16px;
+    font-size:13px;
+    font-weight:600;
+    text-align:center;
+  }
+  .progress-row{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    max-width:420px;
+  }
+  .progress-bar{
+    flex:1;
+    height:10px;
+    background:#fff;
+    border-radius:999px;
+    overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--blue));
+    width:0%;
+    transition:width .2s ease;
+  }
+  .progress-label{
+    font-size:13px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+
+  .card-stage{
+    position:relative;
+    width:min(420px,90vw,56vh);
+    aspect-ratio:1080/1350;
+    background:var(--card-bg);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .card-stage img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .cover-box{
+    position:absolute;
+    left:26%;
+    top:0%;
+    width:74%;
+    height:39%;
+    background:var(--blue);
+    border-radius:0 0 16px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(36px,10vw,52px);
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+    user-select:none;
+    touch-action:manipulation;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .cover-box:active{ transform:scale(0.95); }
+  .cover-box.revealed{
+    opacity:0;
+    pointer-events:none;
+  }
+  .symbol-btn{
+    position:absolute;
+    left:9%;
+    top:29%;
+    width:17%;
+    height:17%;
+    background:transparent;
+    border:none;
+    padding:0;
+    display:flex;
+    align-items:flex-end;
+    justify-content:flex-end;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  .symbol-btn .speaker-icon{
+    background:#fff;
+    color:var(--blue-dark);
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    transition:transform .12s ease;
+  }
+  .symbol-btn:active .speaker-icon{ transform:scale(0.85); }
+  .hint{
+    font-size:13px;
+    color:var(--muted);
+    text-align:center;
+  }
+  .empty-state{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    padding:40px 24px;
+    width:min(420px,90vw);
+    text-align:center;
+  }
+  .empty-state.show{ display:flex; }
+  .empty-state .emoji{ font-size:48px; }
+
+  .btn-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .btn{
+    border:none;
+    padding:12px 20px;
+    border-radius:999px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    color:#fff;
+    touch-action:manipulation;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:hover{ filter:brightness(1.05); transform:translateY(-2px); }
+  .btn:active{ transform:translateY(0); }
+  .btn.nav{ background:var(--blue-dark); }
+  .btn.know{ background:var(--green-dark); }
+  .btn.know.on{ background:#37804f; }
+  .btn.unfamiliar{ background:var(--amber-dark); }
+  .btn.unfamiliar.on{ background:#b97a1f; }
+  .btn.ghost{ background:#e6dfd3; color:var(--text); }
+
+  /* ---------- Stats view ---------- */
+  #statsView{ display:none; }
+  #statsView.active{ display:block; }
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .stat-card{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:18px;
+    text-align:center;
+  }
+  .stat-card .num{
+    font-size:30px;
+    font-weight:700;
+    color:var(--accent-dark);
+  }
+  .stat-card .label{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .stats-section{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .stats-section h3{
+    margin:0 0 10px;
+    font-size:15px;
+  }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .chip{
+    background:#fff4e0;
+    color:var(--amber-dark);
+    border:none;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:14px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  .chip.none{
+    background:transparent;
+    color:var(--muted);
+    font-weight:400;
+  }
+  .table-scroll{
+    overflow-x:auto;
+  }
+  .session-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    min-width:420px;
+  }
+  .session-table th, .session-table td{
+    text-align:center;
+    padding:8px 6px;
+    border-bottom:1px solid #f0e8d8;
+  }
+  .session-table th{
+    color:var(--muted);
+    font-weight:600;
+    font-size:12px;
+  }
+  .session-table td.mode-cell{
+    color:var(--blue-dark);
+    font-weight:600;
+  }
+  .session-table td.rate-cell{
+    font-weight:700;
+    color:var(--accent-dark);
+  }
+  .stats-actions{
+    text-align:center;
+    margin-top:10px;
+  }
+  .btn.reset{ background:#e0a0a0; font-size:13px; padding:8px 18px; }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    padding:10px;
+  }
+
+  /* ---------- Responsive breakpoints: phone / tablet / desktop ---------- */
+  /* Phone portrait & landscape */
+  @media (max-width:480px){
+    header{ padding:16px 12px 8px; }
+    header h1{ font-size:20px; }
+    header p{ font-size:12px; }
+    main{ padding:8px 10px 50px; }
+    .tabs{ gap:6px; }
+    .tab-btn{ padding:8px 14px; font-size:13px; }
+    .grid-cards{ grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:8px; }
+    .btn{ padding:10px 16px; font-size:14px; }
+    .mode-btn{ padding:8px 14px; font-size:13px; }
+    .stats-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  /* Tablet */
+  @media (min-width:481px) and (max-width:1024px){
+    main{ padding:10px 24px 60px; }
+    .grid-cards{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:16px; }
+    .card-stage{ width:min(480px,60vw,56vh); }
+    .stats-grid{ grid-template-columns:repeat(3,1fr); }
+  }
+  /* Large tablet / desktop */
+  @media (min-width:1025px){
+    .grid-cards{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:18px; }
+  }
+  /* Short viewport (phone in landscape) */
+  @media (max-height:480px){
+    header{ padding:8px 12px 2px; }
+    header p{ display:none; }
+    .tabs{ margin:8px 0 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ㄅㄆㄇ 注音符號練習</h1>
+  <p>點一下卡片上的色塊，猜猜是哪個注音符號吧！</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="grid">總覽</button>
+  <button class="tab-btn" data-tab="practice">練習</button>
+  <button class="tab-btn" data-tab="review">複習</button>
+  <button class="tab-btn" data-tab="stats">統計</button>
+</div>
+
+<main>
+  <div id="gridView" class="active">
+    <div class="grid-summary">
+      <span>已學會 <b id="gridKnownCount">0</b> / 37</span>
+      <span>待複習 <b id="gridReviewCount">0</b> / 37</span>
+    </div>
+    <div class="grid-cards" id="gridCards"></div>
+  </div>
+
+  <div id="practiceView">
+    <div class="practice-wrap">
+      <div class="mode-row" id="modeRow">
+        <button class="mode-btn active" data-mode="seq">🔢 依照順序</button>
+        <button class="mode-btn" data-mode="random">🔀 隨機練習</button>
+      </div>
+
+      <div class="review-banner" id="reviewBanner" style="display:none;"></div>
+
+      <div class="progress-row">
+        <span class="progress-label" id="progressLabel">1 / 37</span>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="card-stage" id="cardStage">
+        <img id="cardImg" src="" alt="注音符號卡">
+        <div class="cover-box" id="coverBox">❓</div>
+        <button class="symbol-btn" id="symbolBtn" aria-label="播放發音"><span class="speaker-icon">🔊</span></button>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="emoji">🎉</div>
+        <div>太棒了！目前沒有需要複習的卡片。</div>
+        <button class="btn nav" id="goPracticeBtn">去練習找出不熟的卡片</button>
+      </div>
+
+      <div class="hint" id="hintText">看注音符號念念看，點一下藍色方塊揭曉是誰！</div>
+
+      <div class="btn-row">
+        <button class="btn know" id="knowBtn">😀 我會了</button>
+        <button class="btn unfamiliar" id="unfamiliarBtn">🤔 不熟，加入複習</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn nav" id="prevBtn">⬅ 上一張</button>
+        <button class="btn nav" id="nextBtn">下一張 ➡</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="statsView">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="statKnown">0</div><div class="label">已學會</div></div>
+      <div class="stat-card"><div class="num" id="statReview">0</div><div class="label">待複習</div></div>
+      <div class="stat-card"><div class="num" id="statUntried">37</div><div class="label">尚未練習</div></div>
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">累計練習次數</div></div>
+      <div class="stat-card"><div class="num" id="statToday">0</div><div class="label">今天練習次數</div></div>
+    </div>
+
+    <div class="stats-section">
+      <h3>待複習清單</h3>
+      <div class="chip-row" id="reviewChips"></div>
+    </div>
+
+    <div class="stats-section">
+      <h3>練習紀錄（給家長看）</h3>
+      <div class="table-scroll">
+        <table class="session-table" id="sessionTable">
+          <thead>
+            <tr><th>時間</th><th>模式</th><th>題數</th><th>已學會</th><th>不熟</th><th>答覆率</th></tr>
+          </thead>
+          <tbody id="sessionTableBody"></tbody>
+        </table>
+      </div>
+      <div class="hint" id="sessionEmptyHint" style="display:none;margin-top:10px;">還沒有練習紀錄，去「練習」或「複習」逛逛吧！</div>
+    </div>
+
+    <div class="stats-actions">
+      <button class="btn reset" id="resetBtn">重設所有進度與統計</button>
+    </div>
+  </div>
+</main>
+
+<footer>共 37 張注音符號卡・進度會自動儲存在這台裝置上</footer>
+
+<script>
+  const TOTAL = 37;
+  const symbols = ["ㄅ","ㄆ","ㄇ","ㄈ","ㄉ","ㄊ","ㄋ","ㄌ","ㄍ","ㄎ","ㄏ",
+                    "ㄐ","ㄑ","ㄒ","ㄓ","ㄔ","ㄕ","ㄖ","ㄗ","ㄘ","ㄙ",
+                    "ㄧ","ㄨ","ㄩ",
+                    "ㄚ","ㄛ","ㄜ","ㄝ","ㄞ","ㄟ","ㄠ","ㄡ","ㄢ","ㄣ","ㄤ","ㄥ","ㄦ"];
+
+  const KNOWN_KEY = "zhuyin-known-cards";
+  const REVIEW_KEY = "zhuyin-review-cards";
+  const STATS_KEY = "zhuyin-stats";
+
+  let known = new Set(JSON.parse(localStorage.getItem(KNOWN_KEY) || "[]"));
+  let review = new Set(JSON.parse(localStorage.getItem(REVIEW_KEY) || "[]"));
+  let stats = JSON.parse(localStorage.getItem(STATS_KEY) || '{"totalReveals":0,"daily":{},"sessions":[]}');
+  if(!stats.sessions) stats.sessions = [];
+  const MAX_SESSIONS = 30;
+
+  function saveKnown(){ localStorage.setItem(KNOWN_KEY, JSON.stringify([...known])); }
+  function saveReview(){ localStorage.setItem(REVIEW_KEY, JSON.stringify([...review])); }
+  function saveStats(){ localStorage.setItem(STATS_KEY, JSON.stringify(stats)); }
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+  // ---------- Pronunciation ----------
+  let ttsVoices = [];
+  function loadVoices(){ ttsVoices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+  if("speechSynthesis" in window){
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  function speakSymbol(symbol){
+    if(!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(symbol);
+    const voice = ttsVoices.find(v => v.lang === "zh-TW")
+      || ttsVoices.find(v => v.lang && v.lang.toLowerCase().startsWith("zh"));
+    if(voice) utter.voice = voice;
+    utter.lang = "zh-TW";
+    utter.rate = 0.75;
+    speechSynthesis.speak(utter);
+  }
+
+  // ---------- Session tracking (for parent stats table) ----------
+  let sessionActive = false;
+  let sessionSource = null; // "all" | "review"
+  let session = null;
+
+  function startSession(source){
+    sessionActive = true;
+    sessionSource = source;
+    session = { startedAt: Date.now(), cardsShown:0, answered:0, known:0, unfamiliar:0, source, orderMode };
+  }
+  function endSession(){
+    if(sessionActive && session && session.cardsShown > 0){
+      stats.sessions = stats.sessions || [];
+      stats.sessions.push({
+        time: session.startedAt,
+        source: session.source,
+        orderMode: session.orderMode,
+        cardsShown: session.cardsShown,
+        answered: session.answered,
+        known: session.known,
+        unfamiliar: session.unfamiliar
+      });
+      if(stats.sessions.length > MAX_SESSIONS){
+        stats.sessions = stats.sessions.slice(stats.sessions.length - MAX_SESSIONS);
+      }
+      saveStats();
+    }
+    sessionActive = false;
+    sessionSource = null;
+    session = null;
+  }
+  window.addEventListener("beforeunload", endSession);
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden) endSession();
+  });
+
+  // ---------- Tabs ----------
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const gridViewEl = document.getElementById("gridView");
+  const practiceViewEl = document.getElementById("practiceView");
+  const statsViewEl = document.getElementById("statsView");
+
+  function switchTab(tab){
+    tabBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    gridViewEl.classList.toggle("active", tab === "grid");
+    practiceViewEl.classList.toggle("active", tab === "practice" || tab === "review");
+    statsViewEl.classList.toggle("active", tab === "stats");
+
+    const enteringPractice = (tab === "practice" || tab === "review");
+    const newSource = tab === "review" ? "review" : "all";
+
+    if(sessionActive && (!enteringPractice || sessionSource !== newSource)){
+      endSession();
+    }
+
+    if(enteringPractice){
+      currentSource = newSource;
+      reviewBanner.style.display = currentSource === "review" ? "block" : "none";
+      buildPool();
+      renderCard();
+      if(!sessionActive) startSession(currentSource);
+    }
+    if(tab === "stats") renderStats();
+    if(tab === "grid") renderGrid();
+  }
+  tabBtns.forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+
+  // ---------- Grid view ----------
+  const gridCards = document.getElementById("gridCards");
+  const gridKnownCount = document.getElementById("gridKnownCount");
+  const gridReviewCount = document.getElementById("gridReviewCount");
+
+  function renderGrid(){
+    gridCards.innerHTML = "";
+    for(let i=1;i<=TOTAL;i++){
+      const isKnown = known.has(i);
+      const isReview = review.has(i);
+      const item = document.createElement("div");
+      item.className = "grid-item" + (isKnown ? " known" : "") + (isReview ? " review" : "");
+      item.innerHTML = `
+        <img src="Card/${i}.png" alt="注音符號 ${symbols[i-1]}" loading="lazy">
+        <button class="grid-badge" type="button" aria-label="播放 ${symbols[i-1]} 發音">${symbols[i-1]} 🔊</button>
+        ${isKnown ? '<div class="status-mark known">✔</div>' : ''}
+        ${isReview ? '<div class="status-mark review">🔁</div>' : ''}
+      `;
+      item.addEventListener("click", () => {
+        currentSource = "all";
+        orderMode = "seq";
+        setModeButtons();
+        pool = [...Array(TOTAL).keys()].map(k => k+1);
+        currentIndex = i - 1;
+        switchTab("practice");
+      });
+      item.querySelector(".grid-badge").addEventListener("click", (e) => {
+        e.stopPropagation();
+        speakSymbol(symbols[i-1]);
+      });
+      gridCards.appendChild(item);
+    }
+    gridKnownCount.textContent = known.size;
+    gridReviewCount.textContent = review.size;
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if(confirm("確定要清除全部學習進度與統計資料嗎？")){
+      known.clear(); review.clear();
+      stats = {totalReveals:0, daily:{}, sessions:[]};
+      sessionActive = false; sessionSource = null; session = null;
+      saveKnown(); saveReview(); saveStats();
+      renderGrid();
+      renderStats();
+      buildPool();
+      renderCard();
+    }
+  });
+
+  // ---------- Practice / Review ----------
+  let currentSource = "all"; // "all" | "review"
+  let orderMode = "seq";     // "seq" | "random"
+  let pool = [...Array(TOTAL).keys()].map(i => i+1); // card numbers, 1-based
+  let currentIndex = 0;
+
+  const cardStage = document.getElementById("cardStage");
+  const cardImg = document.getElementById("cardImg");
+  const coverBox = document.getElementById("coverBox");
+  const emptyState = document.getElementById("emptyState");
+  const hintText = document.getElementById("hintText");
+  const progressLabel = document.getElementById("progressLabel");
+  const progressFill = document.getElementById("progressFill");
+  const knowBtn = document.getElementById("knowBtn");
+  const unfamiliarBtn = document.getElementById("unfamiliarBtn");
+  const reviewBanner = document.getElementById("reviewBanner");
+  const modeRow = document.getElementById("modeRow");
+
+  function shuffleArray(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function buildPool(){
+    const base = currentSource === "review"
+      ? [...review].sort((a,b)=>a-b)
+      : [...Array(TOTAL).keys()].map(i=>i+1);
+    pool = orderMode === "random" ? shuffleArray(base) : base;
+    currentIndex = 0;
+  }
+
+  function setModeButtons(){
+    document.querySelectorAll(".mode-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.mode === orderMode));
+  }
+
+  modeRow.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mode-btn");
+    if(!btn) return;
+    orderMode = btn.dataset.mode;
+    setModeButtons();
+    buildPool();
+    renderCard();
+  });
+
+  document.getElementById("goPracticeBtn").addEventListener("click", () => switchTab("practice"));
+
+  function renderCard(){
+    if(pool.length === 0){
+      cardStage.style.display = "none";
+      hintText.style.display = "none";
+      knowBtn.style.display = "none";
+      unfamiliarBtn.style.display = "none";
+      document.getElementById("prevBtn").style.display = "none";
+      document.getElementById("nextBtn").style.display = "none";
+      emptyState.classList.add("show");
+      progressLabel.textContent = "0 / 0";
+      progressFill.style.width = "0%";
+      return;
+    }
+    cardStage.style.display = "block";
+    hintText.style.display = "block";
+    knowBtn.style.display = "inline-block";
+    unfamiliarBtn.style.display = "inline-block";
+    document.getElementById("prevBtn").style.display = "inline-block";
+    document.getElementById("nextBtn").style.display = "inline-block";
+    emptyState.classList.remove("show");
+
+    if(reviewBanner.style.display !== "none"){
+      reviewBanner.textContent = `複習模式：目前有 ${review.size} 張不熟的卡片`;
+    }
+
+    const cardNum = pool[currentIndex];
+    cardImg.src = `Card/${cardNum}.png`;
+    cardImg.alt = `注音符號 ${symbols[cardNum-1]}`;
+    coverBox.classList.remove("revealed");
+    progressLabel.textContent = `${currentIndex+1} / ${pool.length}`;
+    progressFill.style.width = `${((currentIndex+1)/pool.length)*100}%`;
+    knowBtn.classList.toggle("on", known.has(cardNum));
+    knowBtn.textContent = known.has(cardNum) ? "✔ 已學會" : "😀 我會了";
+    unfamiliarBtn.classList.toggle("on", review.has(cardNum));
+    unfamiliarBtn.textContent = review.has(cardNum) ? "🔁 已加入複習" : "🤔 不熟，加入複習";
+  }
+
+  coverBox.addEventListener("click", () => {
+    coverBox.classList.add("revealed");
+    stats.totalReveals = (stats.totalReveals || 0) + 1;
+    const tk = todayKey();
+    stats.daily[tk] = (stats.daily[tk] || 0) + 1;
+    saveStats();
+    if(sessionActive && session){ session.cardsShown++; }
+  });
+
+  document.getElementById("symbolBtn").addEventListener("click", () => {
+    if(pool.length === 0) return;
+    const cardNum = pool[currentIndex];
+    speakSymbol(symbols[cardNum-1]);
+  });
+
+  document.getElementById("prevBtn").addEventListener("click", () => {
+    if(pool.length === 0) return;
+    currentIndex = (currentIndex - 1 + pool.length) % pool.length;
+    renderCard();
+  });
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    if(pool.length === 0) return;
+    currentIndex = (currentIndex + 1) % pool.length;
+    renderCard();
+  });
+
+  function markKnown(){
+    if(pool.length === 0) return;
+    const cardNum = pool[currentIndex];
+    const alreadyKnown = known.has(cardNum);
+    if(alreadyKnown){
+      known.delete(cardNum);
+    }else{
+      known.add(cardNum);
+      review.delete(cardNum);
+      if(sessionActive && session){ session.known++; session.answered++; }
+    }
+    saveKnown(); saveReview();
+
+    if(currentSource === "review"){
+      const idx = pool.indexOf(cardNum);
+      if(idx !== -1 && !review.has(cardNum)){
+        pool.splice(idx,1);
+        if(currentIndex >= pool.length) currentIndex = Math.max(0, pool.length-1);
+      }
+    }
+    renderCard();
+  }
+
+  function markReview(){
+    if(pool.length === 0) return;
+    const cardNum = pool[currentIndex];
+    if(review.has(cardNum)){
+      review.delete(cardNum);
+      if(currentSource === "review"){
+        const idx = pool.indexOf(cardNum);
+        if(idx !== -1){
+          pool.splice(idx,1);
+          if(currentIndex >= pool.length) currentIndex = Math.max(0, pool.length-1);
+        }
+      }
+    }else{
+      review.add(cardNum);
+      known.delete(cardNum);
+      if(sessionActive && session){ session.unfamiliar++; session.answered++; }
+    }
+    saveKnown(); saveReview();
+    renderCard();
+  }
+
+  knowBtn.addEventListener("click", markKnown);
+  unfamiliarBtn.addEventListener("click", markReview);
+
+  document.addEventListener("keydown", (e) => {
+    if(!practiceViewEl.classList.contains("active")) return;
+    if(e.key === "ArrowLeft") document.getElementById("prevBtn").click();
+    if(e.key === "ArrowRight") document.getElementById("nextBtn").click();
+    if(e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      coverBox.classList.add("revealed");
+    }
+  });
+
+  // ---------- Stats view ----------
+  function renderStats(){
+    document.getElementById("statKnown").textContent = known.size;
+    document.getElementById("statReview").textContent = review.size;
+    document.getElementById("statUntried").textContent = TOTAL - known.size - review.size;
+    document.getElementById("statTotal").textContent = stats.totalReveals || 0;
+    document.getElementById("statToday").textContent = (stats.daily && stats.daily[todayKey()]) || 0;
+
+    const chipRow = document.getElementById("reviewChips");
+    chipRow.innerHTML = "";
+    if(review.size === 0){
+      chipRow.innerHTML = '<span class="chip none">目前沒有待複習的卡片</span>';
+    }else{
+      [...review].sort((a,b)=>a-b).forEach(cardNum => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = symbols[cardNum-1];
+        chip.addEventListener("click", () => speakSymbol(symbols[cardNum-1]));
+        chipRow.appendChild(chip);
+      });
+    }
+
+    renderSessionTable();
+  }
+
+  function renderSessionTable(){
+    const tbody = document.getElementById("sessionTableBody");
+    const emptyHint = document.getElementById("sessionEmptyHint");
+    const table = document.getElementById("sessionTable");
+    const sessions = stats.sessions || [];
+    tbody.innerHTML = "";
+
+    if(sessions.length === 0){
+      table.style.display = "none";
+      emptyHint.style.display = "block";
+      return;
+    }
+    table.style.display = "table";
+    emptyHint.style.display = "none";
+
+    [...sessions].reverse().forEach(s => {
+      const d = new Date(s.time);
+      const timeLabel = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      const modeLabel = (s.source === "review" ? "複習・" : "") + (s.orderMode === "random" ? "隨機" : "依序");
+      const rate = s.cardsShown > 0 ? Math.round((s.answered / s.cardsShown) * 100) : 0;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${timeLabel}</td>
+        <td class="mode-cell">${modeLabel}</td>
+        <td>${s.cardsShown}</td>
+        <td>${s.known}</td>
+        <td>${s.unfamiliar}</td>
+        <td class="rate-cell">${rate}%</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- init ----------
+  renderGrid();
+  buildPool();
+  renderCard();
+  renderStats();
+</script>
+</body>
+</html>
