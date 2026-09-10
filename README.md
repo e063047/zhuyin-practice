@@ -4,7 +4,7 @@
 
 ## 🔗 線上遊玩
 
-👉 **https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/**
+👉 **https://e063047.github.io/zhuyin-practice/**
 
 把連結分享給朋友，他們用瀏覽器打開就能直接玩了。
 
@@ -29,8 +29,8 @@
 不想用線上版的話，也可以下載後直接打開：
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/e063047/zhuyin-practice.git
+cd zhuyin-practice
 open index.html   # macOS，或直接用瀏覽器開啟 index.html
 ```
 
