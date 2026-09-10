@@ -243,6 +243,7 @@
     overflow:hidden;
     border-radius:0 0 16px 16px;
     cursor:pointer;
+    background:#000;
     box-shadow:0 3px 8px rgba(0,0,0,0.2);
     user-select:none;
     touch-action:manipulation;
@@ -253,21 +254,12 @@
     opacity:0;
     pointer-events:none;
   }
-  .mosaic-img{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-  }
   .cover-box .mystery{
     position:absolute;
     inset:0;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:rgba(0,0,0,0.18);
   }
   .cover-box .mystery span{
     background:rgba(255,255,255,0.92);
@@ -501,7 +493,6 @@
       <div class="card-stage" id="cardStage">
         <img id="cardImg" src="" alt="注音符號卡">
         <div class="cover-box" id="coverBox">
-          <img class="mosaic-img" id="mosaicImg" src="" alt="">
           <div class="mystery"><span>❓</span></div>
         </div>
       </div>
@@ -512,7 +503,7 @@
         <button class="btn nav" id="goPracticeBtn">去練習找出不熟的卡片</button>
       </div>
 
-      <div class="hint" id="hintText">看注音符號念念看，點一下模糊方塊揭曉是誰！</div>
+      <div class="hint" id="hintText">看注音符號念念看，點一下黑色方塊揭曉是誰！</div>
 
       <div class="btn-row">
         <button class="btn know" id="knowBtn">😀 我會了</button>
@@ -702,7 +693,6 @@
 
   const cardStage = document.getElementById("cardStage");
   const cardImg = document.getElementById("cardImg");
-  const mosaicImg = document.getElementById("mosaicImg");
   const coverBox = document.getElementById("coverBox");
   const emptyState = document.getElementById("emptyState");
   const hintText = document.getElementById("hintText");
@@ -774,7 +764,6 @@
     const cardNum = pool[currentIndex];
     cardImg.src = `Card/${cardNum}.png`;
     cardImg.alt = `注音符號 ${symbols[cardNum-1]}`;
-    mosaicImg.src = `Card/mosaic/${cardNum}.png`;
     coverBox.classList.remove("revealed");
     progressLabel.textContent = `${currentIndex+1} / ${pool.length}`;
     progressFill.style.width = `${((currentIndex+1)/pool.length)*100}%`;
